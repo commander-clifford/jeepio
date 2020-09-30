@@ -8,11 +8,11 @@
   - will incorporate original switch as a pseudo-momentary switch (but its a toggle switch)
   - will have power from interior lights on - to be used as a toggle trigger on/off
 
-  - local push button shall take presedence in function
+  - local push button shall take precedence in function
     - but external trigger MUST be able to turn OFF this light
 
   - future: switch between red and white modes
-  - future: add PWM to be able to dim red and white independantly and from other control units
+  - future: add PWM to be able to dim red and white independently and from other control units
 
   Actions:
     - switch on/off
@@ -38,7 +38,7 @@
     System_State
       - is the interior light system on?
       - this is triggered by the Jeep's 'system' interior light on/off status
-      - this trigger is oem wire run to each factory light location - each factory light will detect this independantly ( additionally the main contol unit will detect this )
+      - this trigger is OEM wire run to each factory light location - each factory light will detect this independantly ( additionally the main contol unit will detect this )
     Rear_State - has the rear interior light been toggled via the local fixture button
     **Front_State - has the front interior light been toggled via a (there are 2) local fixture button**
 
@@ -87,8 +87,8 @@ void turn_lights_on() {
 
 /*
   Lights OFF
-  Just turn ALL lights off reguardless of mode/state?
-  - it might be simplier and safer
+  Just turn ALL lights off regardless of mode/state?
+  - it might be simpler and safer
 */
 void turn_lights_off() {
   Serial.println(" **** Lights OFF **** ");
@@ -115,7 +115,7 @@ void toggle_local_state() {
 void setup() {
 
   Serial.begin(9600);
-  while (!Serial);
+  // while (!Serial);
   Serial.println(" **** Rear Passenger Lamp Starting **** ");
 
   // initialize the LED pins as outputs
@@ -140,7 +140,12 @@ void loop() {
     localButtonState = digitalRead(localButtonPin);
     externalTriggerState = digitalRead(externalTriggerPin);
 
-    // First compare the localButtonState to its previous state
+    /*
+      First:
+      compare the localButtonState to its previous state
+      if different then button has been toggled
+      (regardless of state, we only care if button state changes - the actual state is irrelevant  )
+    */
     if (localButtonState != lastButtonState) {
 
       // Use the buttons on/off to trigger a state toggle of the lights on/off status
