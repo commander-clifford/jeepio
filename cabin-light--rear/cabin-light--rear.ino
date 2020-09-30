@@ -3,16 +3,21 @@
   Brainstorm:
 
   - decouple the ON/OFF of the switch from the ON/OFF of the light
+  - in order to enable driver the ability to turn off the light while in operation
 
-  - must switch between red and white modes
-  - must be able to dim red and white independantly and from other control units
-  - must incorporate original switch as a pseudo-momentary switch - but its a toggle switch
+  - will incorporate original switch as a pseudo-momentary switch (but its a toggle switch)
+  - will have power from interior lights on - to be used as a toggle trigger on/off
 
-  - will have power from ignition on - to be used as a constant source of power (is it only on when ignition is on? -- i think so )
-  - will have power from interior lights on - to be used as a toggle trigger on/off?
+  - local push button shall take presedence in function
+    - but external trigger MUST be able to turn OFF this light
+
+  - future: switch between red and white modes
+  - future: add PWM to be able to dim red and white independantly and from other control units
 
   Actions:
     - switch on/off
+      - via local buttons
+      - via external trigger
     - switch red/white modes
 
   Available Triggers:
@@ -41,6 +46,11 @@
     WhiteLedState
     ButtonState
 
+  Definitions:
+
+  * external trigger is the steering column interior lights trigger (same as door open, etc)
+  * local button is the push button / cover of the factory light shell
+
 */
 
 /* Define pin usage - with non-changing constants (const)*/
@@ -55,43 +65,58 @@ int localButtonState = LOW; // the current reading from the input pin
 int lastButtonState = LOW; // the previous reading from the input pin
 int externalTriggerState = LOW;
 int lastTriggerState = LOW;
-int whiteLedState = LOW;
+int whiteLedState = HIGH;
 int redLedState = LOW;
 int globalSystemState = LOW;
 int localSystemState = LOW;
 
 /* Lights ON */
 void turn_lights_on() {
-  // TODO: toggle red vs. white
-  Serial.println("Lights ON");
-  digitalWrite(redLightsPin, HIGH);
+
+  Serial.println(" **** Lights ON **** ");
+
+  if(whiteLedState == HIGH){
+    digitalWrite(whiteLightsPin, HIGH);
+  } else
+  if(redLedState == HIGH){
+    digitalWrite(redLightsPin, HIGH);
+  }
+
   localSystemState = HIGH;
 }
 
-/* Lights OFF */
+/*
+  Lights OFF
+  Just turn ALL lights off reguardless of mode/state?
+  - it might be simplier and safer
+*/
 void turn_lights_off() {
-  // TODO: toggle red vs. white
-  Serial.println("Lights OFF");
-  digitalWrite(redLightsPin, LOW);
+  Serial.println(" **** Lights OFF **** ");
+
+  // if(whiteLedState == HIGH){
+    digitalWrite(whiteLightsPin, LOW);
+  // } else
+  // if(redLedState == HIGH){
+    digitalWrite(redLightsPin, LOW);
+  // }
+
   localSystemState = LOW;
 }
-
 /* Toggle local system power */
 void toggle_local_state() {
   Serial.println(" **** Toggle Power **** ");
   if(localSystemState == LOW){
     turn_lights_on();
-  }else{
+  } else {
     turn_lights_off();
   }
 }
-
 
 void setup() {
 
   Serial.begin(9600);
   while (!Serial);
-  Serial.println("**** Rear Passenger Lamp Starting ****");
+  Serial.println(" **** Rear Passenger Lamp Starting **** ");
 
   // initialize the LED pins as outputs
   pinMode(redLightsPin, OUTPUT);
@@ -115,7 +140,7 @@ void loop() {
     localButtonState = digitalRead(localButtonPin);
     externalTriggerState = digitalRead(externalTriggerPin);
 
-    // compare the localButtonState to its previous state
+    // First compare the localButtonState to its previous state
     if (localButtonState != lastButtonState) {
 
       // Use the buttons on/off to trigger a state toggle of the lights on/off status
@@ -125,7 +150,7 @@ void loop() {
       lastButtonState = localButtonState;
 
     } else {
-
+      // If no changes to local button check trigger
       // compare the trigger State to its previous state
       if(externalTriggerState != lastTriggerState){
 
