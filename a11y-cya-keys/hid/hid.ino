@@ -1,18 +1,17 @@
 // MVP it's totally dumb and repetitive but it works for now, TODO:DRY
 
-// in this iteration only the 6 keys are active and assigned to static ZOOM keyboard shortcuts
+// https://github.com/NicoHood/HID/wiki/Consumer-API
+#include <HID-Project.h>
+#include <HID-Settings.h>
+// #include "Keyboard.h"
 
-// References:
-// Modifier Keys: https://www.arduino.cc/reference/en/language/functions/usb/keyboard/keyboardmodifiers/
-
-#include "Keyboard.h"
-// #include <HID-Project.h>
-// #include <HID-Settings.h>
 #include <Wire.h>
 #include <i2cEncoderMiniLib.h>
 #include <SPI.h>
+
+//https://github.com/adafruit/Adafruit-GFX-Library
 #include <Adafruit_SSD1306.h>
-#include <Adafruit_GFX.h>  //https://github.com/adafruit/Adafruit-GFX-Library
+#include <Adafruit_GFX.h>
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
@@ -21,7 +20,6 @@
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 #define UI_BMPWIDTH  128
-
 
 const int IntPin = 3; /* Definition of the interrupt pin. You can change according to your board */
 //Class initialization with the I2C addresses
@@ -35,7 +33,10 @@ const int b2_Button = 9;
 const int b3_Button = 10;
 
 int myPins[] = {2, 4, 8, 3, 6};
-char *buttonNames[] = {"HAND", "CAM>", "CTRL", "MUTE", "VIDEO", "VIEW"};
+char *buttonNames[] = {
+  "HAND", "CAM>", "CTRL", "MUTE", "VIDEO", "VIEW",
+  "MEDIA_VOL_UP", "MEDIA_VOL_DOWN", "MEDIA_PLAY/PAUSE"
+};
 
 // const char buttons[] =
 // {
@@ -62,16 +63,35 @@ int last_b3ButtonState = HIGH;
 unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
 unsigned long debounceDelay = 20;    // the debounce time; increase if the output flickers
 
+//Callback when the encoder is pushed
+void encoder_push(i2cEncoderMiniLib* obj) {
+  Serial.println("Pressed: Encoder: PLAY/PAUSE");
+  Consumer.write(MEDIA_PLAY_PAUSE);
+}
+
+void encoder_double_push(i2cEncoderMiniLib* obj) {
+  Serial.println("Double Pressed: Encoder: MEDIA_NEXT");
+  Consumer.write(MEDIA_NEXT);
+}
+
+void encoder_released(i2cEncoderMiniLib* obj) {
+  Serial.println("encoder_released");
+}
+
+void encoder_long_push(i2cEncoderMiniLib* obj) {
+  Serial.println("encoder_long_push");
+}
+
 //Callback when the CVAL is incremented
 void encoder_increment(i2cEncoderMiniLib* obj) {
-  Keyboard.press(KEY_F14);
-  Keyboard.releaseAll();
+  // Serial.println("Encoder: Down: Volume Down");
+  press_key("E_DOWN");
 }
 
 //Callback when the CVAL is decremented
 void encoder_decrement(i2cEncoderMiniLib* obj) {
-  Keyboard.press(KEY_F15);
-  Keyboard.releaseAll();
+  // Serial.println("Encoder: Up: Volume Up");
+  press_key("E_UP");
 }
 
 void draw_display() {
@@ -119,13 +139,13 @@ void draw_display() {
   display.display();
 }
 
-void press_key(char key) {
+void press_key(char* key) {
   Serial.print("Pressed: ");
 
   // _-_-_-   1:A1    _-_-_- //
   // _-_-_- [*][ ][ ] _-_-_- //
   // _-_-_- [ ][ ][ ] _-_-_- //
-  if(key == 1){
+  if(key == "A1"){
 
     // TESTING
     Serial.print("Key A1: ");
@@ -147,7 +167,7 @@ void press_key(char key) {
   // _-_-_-   2:A2    _-_-_- //
   // _-_-_- [ ][*][ ] _-_-_- //
   // _-_-_- [ ][ ][ ] _-_-_- //
-  if(key == 2){
+  if(key == "A2"){
 
     // TESTING
     Serial.print("Key A2: ");
@@ -164,13 +184,13 @@ void press_key(char key) {
     display.setCursor(53,24);
     display.println(buttonNames[1]);
     display.display();
-    
+
   }
 
   // _-_-_-   3:A3    _-_-_- //
   // _-_-_- [ ][ ][*] _-_-_- //
   // _-_-_- [ ][ ][ ] _-_-_- //
-  if(key == 3){
+  if(key == "A3"){
 
     // TESTING
     Serial.print("Key A3: ");
@@ -188,16 +208,16 @@ void press_key(char key) {
     display.setCursor(95,24);
     display.println(buttonNames[2]);
     display.display();
-    
+
   }
 
   // _-_-_-   4:B1    _-_-_- //
   // _-_-_- [ ][ ][ ] _-_-_- //
   // _-_-_- [*][ ][ ] _-_-_- //
-  if(key == 4){
+  if(key == "B1"){
 
     // TESTING
-    Serial.print("Key A4: ");
+    Serial.print("Key B1: ");
     Serial.println(buttonNames[3]);
 
     // ACTIONS
@@ -217,10 +237,10 @@ void press_key(char key) {
   // _-_-_-   5:B2    _-_-_- //
   // _-_-_- [ ][ ][ ] _-_-_- //
   // _-_-_- [ ][*][ ] _-_-_- //
-  if(key == 5){
+  if(key == "B2"){
 
     // TESTING
-    Serial.print("Key A5: ");
+    Serial.print("Key B2: ");
     Serial.println(buttonNames[4]);
 
     // ACTIONS
@@ -240,10 +260,10 @@ void press_key(char key) {
   // _-_-_-   6:B3    _-_-_- //
   // _-_-_- [ ][ ][ ] _-_-_- //
   // _-_-_- [ ][ ][*] _-_-_- //
-  if(key == 6){
+  if(key == "B3"){
 
     // TESTING
-    Serial.print("Key A6: ");
+    Serial.print("Key B3: ");
     Serial.println(buttonNames[5]);
 
     // ACTIONS
@@ -257,7 +277,26 @@ void press_key(char key) {
     display.setCursor(95,48);
     display.println(buttonNames[5]);
     display.display();
-    
+
+  }
+
+  if(key == "E_UP"){
+    // TESTING
+    Serial.print("Key E_UP: ");
+    Serial.println(buttonNames[6]);
+
+    // ACTIONS
+    Consumer.write(MEDIA_VOLUME_UP);
+
+  }
+
+  if(key == "E_DOWN"){
+    // TESTING
+    Serial.print("Key E_DOWN: ");
+    Serial.println(buttonNames[7]);
+
+    // ACTIONS
+    Consumer.write(MEDIA_VOLUME_DOWN);
   }
 
 }
@@ -295,14 +334,18 @@ void setup() {
   Encoder.onDecrement = encoder_decrement;
   // Encoder.onMax = encoder_max;
   // Encoder.onMin = encoder_min;
-  // Encoder.onButtonPush = encoder_push;
-  // Encoder.onButtonRelease = encoder_released;
-  // Encoder.onButtonDoublePush = encoder_double_push;
-  // Encoder.onButtonLongPush = encoder_long_push;
+  Encoder.onButtonPush = encoder_push;
+  Encoder.onButtonRelease = encoder_released;
+  Encoder.onButtonDoublePush = encoder_double_push;
+  Encoder.onButtonLongPush = encoder_long_push;
 
   /* Enable the I2C Encoder V2 interrupts according to the previus attached callback */
   Encoder.autoconfigInterrupt();
 
+
+
+  Consumer.begin();                         //initialize computer connection
+  delay(1000);
   Keyboard.begin();
 
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
@@ -329,7 +372,7 @@ void loop() {
      a1ButtonState = readingA1;
      Keyboard.releaseAll();
      if (a1ButtonState == LOW) {
-       press_key(1);
+       press_key("A1");
      } else {
        draw_display();
      }
@@ -346,7 +389,7 @@ void loop() {
       a2ButtonState = readingA2;
       Keyboard.releaseAll();
       if (a2ButtonState == LOW) {
-        press_key(2);
+        press_key("A2");
       } else {
         draw_display();
       }
@@ -363,7 +406,7 @@ void loop() {
       a3ButtonState = readingA3;
       Keyboard.releaseAll();
       if (a3ButtonState == LOW) {
-        press_key(3);
+        press_key("A3");
       } else {
         draw_display();
       }
@@ -380,7 +423,7 @@ void loop() {
       b1ButtonState = readingB1;
       Keyboard.releaseAll();
       if (b1ButtonState == LOW) {
-        press_key(4);
+        press_key("B1");
       } else {
         draw_display();
       }
@@ -397,7 +440,7 @@ void loop() {
       b2ButtonState = readingB2;
       Keyboard.releaseAll();
       if (b2ButtonState == LOW) {
-        press_key(5);
+        press_key("B2");
       } else {
         draw_display();
       }
@@ -414,7 +457,7 @@ void loop() {
       b3ButtonState = readingB3;
       Keyboard.releaseAll();
       if (b3ButtonState == LOW) {
-        press_key(6);
+        press_key("B3");
       } else {
         draw_display();
       }
