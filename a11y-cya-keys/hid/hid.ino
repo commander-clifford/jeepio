@@ -32,16 +32,29 @@ const int b1_Button = 8;
 const int b2_Button = 9;
 const int b3_Button = 10;
 
-int myPins[] = {2, 4, 8, 3, 6};
+// int myPins[] = {2, 4, 8, 3, 6};
+
+int buttonNameXcord[] = {
+  10,53,95,
+  10,52,95
+};
+
 char *buttonNames[] = {
-  "HAND", "CAM>", "CTRL", "MUTE", "VIDEO", "VIEW",
+  " ", " ", " ",
+  "PREV", "PLAY", "NEXT",
   "MEDIA_VOL_UP", "MEDIA_VOL_DOWN", "MEDIA_PLAY/PAUSE"
 };
 
+
+
+
 // const char buttons[] =
 // {
-//   {title: "HAND"},
-//   {title: "CAM>"}
+//   {
+//    title: "paste",
+//    xPosition: 24
+//    action: [KEY_LEFT_CMD, "V"]
+//   },
 // };
 
 int a1ButtonState;
@@ -84,14 +97,16 @@ void encoder_long_push(i2cEncoderMiniLib* obj) {
 
 //Callback when the CVAL is incremented
 void encoder_increment(i2cEncoderMiniLib* obj) {
-  // Serial.println("Encoder: Down: Volume Down");
+  Serial.println("Encoder: Down: Volume Down");
   press_key("E_DOWN");
+  // Mouse.move(-40, 0, 0); // etch-a-sketch
 }
 
 //Callback when the CVAL is decremented
 void encoder_decrement(i2cEncoderMiniLib* obj) {
-  // Serial.println("Encoder: Up: Volume Up");
+  Serial.println("Encoder: Up: Volume Up");
   press_key("E_UP");
+  // Mouse.move(40, 0, 0); // etch-a-sketch
 }
 
 void draw_display() {
@@ -108,38 +123,43 @@ void draw_display() {
 
   // key 1 label
   display.drawRoundRect(0,16,42,23,3,SSD1306_WHITE);
-  display.setCursor(10,24);
+  display.setCursor(buttonNameXcord[0],24);
   display.println(buttonNames[0]);
 
   // key 2 label
   display.drawRoundRect(43,16,42,23,3,SSD1306_WHITE);
-  display.setCursor(53,24);
+  display.setCursor(buttonNameXcord[1],24);
   display.println(buttonNames[1]);
 
   // key 3 label
   display.drawRoundRect(86,16,42,23,3,SSD1306_WHITE);
-  display.setCursor(95,24);
+  display.setCursor(buttonNameXcord[2],24);
   display.println(buttonNames[2]);
 
   // key 4 label
   display.drawRoundRect(0,40,42,23,3,SSD1306_WHITE);
-  display.setCursor(10,48);
+  display.setCursor(buttonNameXcord[3],48);
   display.println(buttonNames[3]);
 
   // key 5 label
   display.drawRoundRect(43,40,42,23,3,SSD1306_WHITE);
-  display.setCursor(49,48);
+  display.setCursor(buttonNameXcord[4],48);
   display.println(buttonNames[4]);
 
   // key 6 label
   display.drawRoundRect(86,40,42,23,3,SSD1306_WHITE);
-  display.setCursor(95,48);
+  display.setCursor(buttonNameXcord[5],48);
   display.println(buttonNames[5]);
 
   display.display();
 }
 
 void press_key(char* key) {
+
+  // Serial.print(" button1Actions ");
+  // Serial.println(sizeof(button1Actions));
+
+
   Serial.print("Pressed: ");
 
   // _-_-_-   1:A1    _-_-_- //
@@ -152,8 +172,9 @@ void press_key(char* key) {
     Serial.println(buttonNames[0]);
 
     // ACTIONS
-    Keyboard.press(KEY_LEFT_ALT);
-    Keyboard.press('Y');
+    // Keyboard.press(KEY_LEFT_SHIFT);
+    // Keyboard.press('Y');
+    // Mouse.press(MOUSE_MIDDLE);
 
     // FEEDBACK
     display.fillRoundRect(0,16,42,23,3,SSD1306_WHITE);
@@ -174,9 +195,11 @@ void press_key(char* key) {
     Serial.println(buttonNames[1]);
 
     // ACTIONS
-    Keyboard.press(KEY_LEFT_GUI);
-    Keyboard.press(KEY_LEFT_SHIFT);
-    Keyboard.press('N');
+    // Keyboard.press(KEY_LEFT_GUI);
+    // Keyboard.press(KEY_LEFT_SHIFT);
+    // Keyboard.press('N');
+
+    // Mouse.press(MOUSE_MIDDLE);
 
     // FEEDBACK
     display.fillRoundRect(43,16,42,23,3,SSD1306_WHITE);
@@ -197,10 +220,12 @@ void press_key(char* key) {
     Serial.println(buttonNames[2]);
 
     // ACTIONS
-    Keyboard.press(KEY_LEFT_ALT);
-    Keyboard.press(KEY_LEFT_CTRL);
-    Keyboard.press(KEY_LEFT_GUI);
-    Keyboard.press('H');
+    // Keyboard.press(KEY_LEFT_ALT);
+    // Keyboard.press(KEY_LEFT_CTRL);
+    // Keyboard.press(KEY_LEFT_GUI);
+    // Keyboard.press('H');
+
+    // Mouse.press(MOUSE_RIGHT);
 
     // FEEDBACK
     display.fillRoundRect(86,16,42,23,3,SSD1306_WHITE);
@@ -221,9 +246,10 @@ void press_key(char* key) {
     Serial.println(buttonNames[3]);
 
     // ACTIONS
-    Keyboard.press(KEY_LEFT_GUI);
-    Keyboard.press(KEY_LEFT_SHIFT);
-    Keyboard.press('A');
+    // Keyboard.press(KEY_LEFT_GUI);
+    // Keyboard.press(KEY_LEFT_SHIFT);
+    // Keyboard.press('A');
+    Consumer.write(MEDIA_PREVIOUS);
 
     // FEEDBACK
     display.fillRoundRect(0,40,42,23,3,SSD1306_WHITE);
@@ -244,9 +270,10 @@ void press_key(char* key) {
     Serial.println(buttonNames[4]);
 
     // ACTIONS
-    Keyboard.press(KEY_LEFT_GUI);
-    Keyboard.press(KEY_LEFT_SHIFT);
-    Keyboard.press('V');
+    // Keyboard.press(KEY_LEFT_GUI);
+    // Keyboard.press(KEY_LEFT_SHIFT);
+    // Keyboard.press('V');
+    Consumer.write(MEDIA_PLAY_PAUSE);
 
     // FEEDBACK
     display.fillRoundRect(43,40,42,23,3,SSD1306_WHITE);
@@ -267,9 +294,10 @@ void press_key(char* key) {
     Serial.println(buttonNames[5]);
 
     // ACTIONS
-    Keyboard.press(KEY_LEFT_GUI);
-    Keyboard.press(KEY_LEFT_SHIFT);
-    Keyboard.press('W');
+    // Keyboard.press(KEY_LEFT_GUI);
+    // Keyboard.press(KEY_LEFT_SHIFT);
+    // Keyboard.press('W');
+    Consumer.write(MEDIA_NEXT);
 
     // FEEDBACK
     display.fillRoundRect(86,40,42,23,3,SSD1306_WHITE);
@@ -315,6 +343,12 @@ void setup() {
   Serial.begin(115200);
 
   Serial.println("**** a11y-cya-keys ****");
+
+
+  // Serial.print(" button1Actions ");
+  // Serial.println(sizeof(button1Actions));
+
+
   Encoder.reset();
   Encoder.begin(
     i2cEncoderMiniLib::WRAP_ENABLE
@@ -371,6 +405,7 @@ void loop() {
    if (readingA1 != a1ButtonState) {
      a1ButtonState = readingA1;
      Keyboard.releaseAll();
+     Mouse.release(MOUSE_MIDDLE);
      if (a1ButtonState == LOW) {
        press_key("A1");
      } else {
@@ -387,7 +422,8 @@ void loop() {
   if ((millis() - lastDebounceTime) > debounceDelay) {
     if (readingA2 != a2ButtonState) {
       a2ButtonState = readingA2;
-      Keyboard.releaseAll();
+      // Keyboard.releaseAll();
+      Mouse.release(MOUSE_MIDDLE);
       if (a2ButtonState == LOW) {
         press_key("A2");
       } else {
